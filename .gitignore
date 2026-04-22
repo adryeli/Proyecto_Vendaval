@@ -1,0 +1,28 @@
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Variables de entorno
+.env
+
+# Logs
+logs/*.log
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
