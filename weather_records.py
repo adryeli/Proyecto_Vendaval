@@ -1,11 +1,12 @@
 {
-    "local_time": str,
+    "record_id": str,
+    "timestamp": str,
     "city": str,
-    "region": str,
-    "temperature": float,
-    "humidity": int,
-    "wind_speed": float,
-    "precipitations": int,
+    "zone": str,
+    "temperature_c": float,
+    "humidity": float,
+    "wind_kph": float,
+    "rain_mm": float,
     "alert_level": str
 }
 
