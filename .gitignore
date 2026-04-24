@@ -10,6 +10,7 @@ __pycache__/
 # ENTORNO VIRTUAL
 # ==============================
 venv/
+env/
 
 # ==============================
 # VARIABLES DE ENTORNO
