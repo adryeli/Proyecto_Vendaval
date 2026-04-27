@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 
 def normalize_weather_data(raw_data: Dict[str, Any], source: str = "api") -> Optional[Dict[str, Any]]:
     """
-    Transforma los datos de WeatherAPI al esquema definido en weather_records.py.
+    Transforma los datos de WeatherAPI y lo lleva al esquema definido en weather_records.py.
     """
     if not raw_data:
         return None
