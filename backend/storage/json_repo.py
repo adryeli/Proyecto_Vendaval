@@ -26,18 +26,16 @@ class JsonRepository:
     Centraliza todas las operaciones de lectura y escritura.
     """
 
-    def __init__(self, file_path="data/weather_cache.json"):
+    def __init__(self, file_path: str = "data/weather_cache.json"):
         """
-        Constructor de la clase.
-        Se ejecuta automáticamente cuando alguien en el equipo "crea" un objeto JsonRepository.
+        Inicializa el repositorio JSON.
         
         Parámetros:
-        file_path (str): La ruta donde vivirá nuestro archivo JSON. 
-                         Por defecto es la caché de datos de la API.
+        file_path (str): La ruta del archivo donde se guardarán los datos.
+                         Si Lógica de Negocio no pasa ninguna ruta, por defecto
+                         usará 'data/weather_cache.json' para no romper nada.
         """
         self.file_path = file_path
-        
-        # Al arrancar, comprobamos que el archivo exista para evitar errores de "File Not Found"
         self._ensure_file_exists()
 
     def _ensure_file_exists(self):
@@ -57,26 +55,32 @@ class JsonRepository:
             with open(self.file_path, 'w', encoding='utf-8') as file:
                 json.dump({}, file)
 
-    def save_record(self, record: dict):
+    def save_record(self, record: dict) -> bool:
         """
         Guarda o actualiza un registro climático en el archivo JSON.
         
         Parámetros:
-        record (dict): El dato climático que nos pasa la compañera Johanna o la entrada manual.
-                       Debe respetar ESTRICTAMENTE el esquema de WeatherRecord (Laura),
-                       conteniendo al menos las llaves 'timestamp' y 'zone'.
-        """
-        # 1. Abrimos el archivo en modo lectura ('r') para ver qué hay dentro
-        with open(self.file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
+        record (dict): El dato climático a guardar.
         
-        # 2. Construimos nuestra Clave Compuesta usando el ESQUEMA OFICIAL: "Timestamp_Zone"
-        # Ejemplo: "2026-04-24_Madrid"
+        Retorna:
+        bool: True si se guardó correctamente.
+        """
+        # 1. Intentamos leer el archivo de forma segura
+        try:
+            with open(self.file_path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            # Si el archivo fue borrado o está corrupto/vacío, empezamos de cero
+            data = {}
+        
+        # 2. Construimos nuestra Clave Compuesta
         clave = f"{record['timestamp']}_{record['zone']}"
         
-        # 3. Guardamos el registro en el diccionario usando nuestra clave.
+        # 3. Guardamos el registro en el diccionario
         data[clave] = record
         
-        # 4. Volvemos a abrir el archivo en modo escritura ('w') para guardar los cambios
+        # 4. Sobrescribimos el archivo con los datos actualizados
         with open(self.file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
+            
+        return True # Avisamos a Application que todo salió perfecto
