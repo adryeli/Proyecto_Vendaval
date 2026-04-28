@@ -28,6 +28,7 @@ def normalize_weather_data(raw_data: Dict[str, Any], source: str = "api") -> Opt
             last_updated=dt_object,
             source=source
         )
+        
     except (KeyError, ValueError, TypeError) as e:
         logging.error(f"Error de normalización (Fuente: {source}): {str(e)}")
         return None
