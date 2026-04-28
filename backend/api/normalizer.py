@@ -1,34 +1,28 @@
-from datetime import datetime
-from typing import Dict, Any, Optional
 import logging
-from backend.core.weather_record import WeatherRecord
+from typing import Dict, Any, Optional
+from backend.core.weather_records import create_weather_record
 
-def normalize_weather_data(raw_data: Dict[str, Any], source: str = "api") -> Optional[WeatherRecord]:
+def normalize_weather_data(raw_data: Dict[str, Any], zone: str, source: str = "WeatherAPI") -> Optional[Dict[str, Any]]:
     """
-    Transforma el diccionario crudo al modelo estandarizado WeatherRecord
-    Permite etiquetar el origen de los datos (manual o api).
+    Normaliza datos climáticos de la API y los pasa a create_weather_record.
     """
-    if not raw_data:
-        return None
-
     try:
-        # Extraemos y formateamos la fecha de actualización
-        last_updated_str = raw_data["current"]["last_updated"]
-        dt_object = datetime.strptime(last_updated_str, "%Y-%m-%d %H:%M")
+        # Extraemos las secciones principales de la respuesta de la API
+        location = raw_data["location"]
+        current = raw_data["current"]
 
-        return WeatherRecord(
-            location=raw_data["location"]["name"],
-            region=raw_data["location"]["region"],
-            country=raw_data["location"]["country"],
-            lat=raw_data["location"]["lat"],
-            lon=raw_data["location"]["lon"],
-            temp_c=raw_data["current"]["temp_c"],
-            humidity=raw_data["current"]["humidity"],
-            condition=raw_data["current"]["condition"]["text"],
-            last_updated=dt_object,
-            source=source
+        # Retornamos la llamada a la función de molde con los datos limpios
+        return create_weather_record(
+            city=location.get("name", ""),
+            zone=zone,
+            temperature_c=current.get("temp_c", 0.0),
+            humidity_pct=current.get("humidity", 0.0),
+            wind_kph=current.get("wind_kph", 0.0),
+            rain_mm=current.get("precip_mm", 0.0),
+            source=source,
+            timestamp=current.get("last_updated")
         )
-        
-    except (KeyError, ValueError, TypeError) as e:
-        logging.error(f"Error de normalización (Fuente: {source}): {str(e)}")
+
+    except (KeyError, TypeError) as e:
+        logging.error(f"Error al normalizar datos climáticos: {e}")
         return None
