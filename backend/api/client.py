@@ -37,30 +37,51 @@ class ApiClient:
     # --- MÉTODOS OBREROS (Privados) ---
 
     def _get_from_open_meteo(self, city: str):
-        """Estrategia para Open-Meteo (Usa coordenadas)"""
-        coordenadas = {
-            "Madrid": {"lat": 40.4165, "lon": -3.7026},
-            "Barcelona": {"lat": 41.3888, "lon": 2.1590},
-            "Valencia": {"lat": 39.4697, "lon": -0.3774}
+        """
+        Estrategia para Open-Meteo.
+        Usa una API de Geocodificación para traducir la ciudad a coordenadas dinámicamente.
+        """
+        # 1. FASE DE GEOCODIFICACIÓN: Traducir Ciudad -> Coordenadas
+        geo_url = "https://geocoding-api.open-meteo.com/v1/search"
+        geo_params = {
+            "name": city,
+            "count": 1,        # Solo queremos el resultado más relevante
+            "language": "es",
+            "format": "json"
         }
         
-        if city not in coordenadas:
-            print(f"❌ Error: La ciudad '{city}' no está en nuestro diccionario de Open-Meteo.")
+        try:
+            geo_response = requests.get(geo_url, params=geo_params, timeout=10)
+            geo_response.raise_for_status()
+            geo_data = geo_response.json()
+            
+            # Verificamos si la API realmente encontró la ciudad
+            if "results" not in geo_data or len(geo_data["results"]) == 0:
+                print(f"❌ Error: Open-Meteo no encontró coordenadas para '{city}'.")
+                return None
+                
+            # Extraemos latitud y longitud
+            lat = geo_data["results"][0]["latitude"]
+            lon = geo_data["results"][0]["longitude"]
+            
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error de red al buscar coordenadas de '{city}': {e}")
             return None
 
+        # 2. FASE DEL CLIMA: Pedir datos con las coordenadas obtenidas
         endpoint = f"{self.openmeteo_url}/forecast"
-        params = {
-            "latitude": coordenadas[city]["lat"],
-            "longitude": coordenadas[city]["lon"],
+        weather_params = {
+            "latitude": lat,
+            "longitude": lon,
             "current_weather": True
         }
         
         try:
-            response = requests.get(endpoint, params=params, timeout=10)
+            response = requests.get(endpoint, params=weather_params, timeout=10)
             response.raise_for_status() 
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"❌ Error de red con Open-Meteo: {e}")
+            print(f"❌ Error de red con Open-Meteo al obtener el clima: {e}")
             return None
 
     def _get_from_weatherapi(self, city: str):
