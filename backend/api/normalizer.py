@@ -5,7 +5,7 @@ from backend.core.weather_record import WeatherRecord
 
 def normalize_weather_data(raw_data: Dict[str, Any], source: str = "api") -> Optional[WeatherRecord]:
     """
-    Transforma el diccionario crudo al modelo estandarizado WeatherRecord.
+    Transforma el diccionario crudo al modelo estandarizado WeatherRecord
     Permite etiquetar el origen de los datos (manual o api).
     """
     if not raw_data:
