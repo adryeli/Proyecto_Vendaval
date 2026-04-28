@@ -9,7 +9,7 @@ class TempAlert:
     message = "Alarma: Riesgo de temperatura"
 
     def check(self, record):
-        return record.temperatura < -8 or record.temperatura > 40
+        return record["temperature_c"] < -8 or record["temperature_c"] > 40
     
 
 class WindAlert:
@@ -17,7 +17,7 @@ class WindAlert:
     message = "Alarma: Riesgo de viento alto"
 
     def check(self, record):
-        return record.viento_velocidad >= 70
+        return record["wind_kph"] >= 70
     
 
 class HumidityAlert:
@@ -25,15 +25,15 @@ class HumidityAlert:
     message = "Alarma: Riesgo de humedad"
 
     def check(self, record):
-        return (0 < record.humedad_nivel <= 20) or (70 < record.humedad_nivel <= 100)
+        return (0 < record["humidity_pct"] <= 20) or (70 < record["humidity_pct"] <= 100)
 
 
-class HeavyRain:
-    name = "heavy_rain"
+class HeavyRainAlert:
+    name = "heavy_rain_alert"
     message = "Alarma: Lluvia fuerte"
 
     def check(self, record):
-        return 10 < record.precipitation <= 30
+        return 10 < record["rain_mm"] <= 30
 
 
 class HeavyRainRiskAlert:
@@ -41,13 +41,13 @@ class HeavyRainRiskAlert:
     message = "Alarma: Riesgo de precipitaciones intensas"
 
     def check(self, record):
-        return record.precipitation > 30
+        return record["rain_mm"] > 30
 
  #implementamos las alertas, con polimorfismo, no importa que tipo de alerta sea, todas tienen el metodo check   
 
 class AlertSystem:
     def __init__(self):
-        self.alerts = [TempAlert(), WindAlert(), HumidityAlert(), HeavyRain(), HeavyRainRiskAlert()]
+        self.alerts = [TempAlert(), WindAlert(), HumidityAlert(), HeavyRainAlert(), HeavyRainRiskAlert()]
 
     
     def check(self, record):
@@ -61,6 +61,6 @@ class AlertSystem:
                 messages.append(alert.message)
 
         return {
-            "mensajes": messages,
-            "resultados": results
+            "messages": messages,
+            "results": results
         }
