@@ -1,7 +1,6 @@
 from datetime import datetime
 
 def create_weather_record ( 
-    record_id: str,
     city: str,
     zone: str,
     temperature_c: float,
@@ -13,10 +12,9 @@ def create_weather_record (
 ) -> dict:
 
     if timestamp is None:
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     return {
-        "record_id": record_id,
         "timestamp": timestamp,
         "zone": zone,
         "city": city,
