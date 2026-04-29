@@ -27,3 +27,4 @@ def normalize_weather_data(raw_data: Dict[str, Any], zone: str, source: str = "W
         logging.error(f"Error al normalizar datos climáticos: {e}")
         return None
 
+
