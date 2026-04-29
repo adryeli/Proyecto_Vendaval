@@ -16,11 +16,13 @@ def setup_logger():
         os.makedirs(LOG_DIR)
 
     logging.basicConfig(
-        filename=LOG_FILE,
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-        encoding='utf-8'
+        handlers=[
+            logging.FileHandler(LOG_FILE, encoding='utf-8'),
+            logging.StreamHandler()
+        ]
     )
     
 def log_info(message):
