@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 def create_weather_record ( 
     city: str,
     zone: str,
