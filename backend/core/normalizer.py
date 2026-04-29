@@ -6,6 +6,10 @@ def normalize_weather_data(raw_data: Dict[str, Any], zone: str, source: str = "W
     """
     Normaliza datos climáticos de la API y los pasa a create_weather_record.
     """
+    # Validación inicial para evitar procesamiento innecesario
+    if not raw_data:
+        return None
+
     try:
         # Extraemos las secciones principales de la respuesta de la API
         location = raw_data["location"]
@@ -23,8 +27,6 @@ def normalize_weather_data(raw_data: Dict[str, Any], zone: str, source: str = "W
             timestamp=current.get("last_updated")
         )
 
-    except (KeyError, TypeError) as e:
+    except (KeyError, TypeError, ValueError) as e:
         logging.error(f"Error al normalizar datos climáticos: {e}")
         return None
-
-
