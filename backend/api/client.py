@@ -1,18 +1,7 @@
 import requests
 import time
 from typing import Optional, Dict, Any
-
-# Importación estándar para el proyecto Proyecto_Vendaval
-try:
-    from backend.utils.logger_config import log_info, log_error
-except ImportError:
-    # Si falla la importación absoluta, intentamos la relativa
-    try:
-        from ..utils.logger_config import log_info, log_error
-    except ImportError:
-        # Si todo falla, definimos funciones vacías para que el código no explote
-        def log_info(m): print(f"INFO: {m}")
-        def log_error(m): print(f"ERROR: {m}")
+from backend.utils.logger_config import log_info, log_error
 
 def fetch_weather_data(api_key: str, base_url: str, city: str) -> Optional[Dict[str, Any]]:
     """
