@@ -1,41 +1,47 @@
 import requests
-import os
+import time
+from typing import Optional, Dict, Any
+from backend.utils.logger_config import log_info, log_error
 
-class WeatherClient:
-    def __init__(self, base_url, api_key=None):
-        self.base_url = base_url
+# --- CONFIGURACIÓN DE SESIÓN Y HEADERS ---
+# Creamos una sesión global para el módulo. Esto gestiona las conexiones de forma eficiente.
+_session = requests.Session()
 
-        # 1. GESTIÓN DE SESIÓN: Creamos una sesión persistente
-        # Esto reutiliza la conexión y es más eficiente (mejor performance)
-        self.session = requests.Session()
+# Configuramos los Headers que se enviarán en cada petición
+_session.headers.update({
+    "User-Agent": "ProyectoVendaval/1.0",
+    "Accept": "application/json"
+})
 
-        # 2. GESTIÓN DE HEADERS: Definimos los encabezados base
-        # Aquí es donde el sistema se "identifica" ante el servidor
-        self.session.headers.update({
-            "User-Agent": "ProyectoVendaval/1.0",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        })
+def fetch_weather_data(api_key: str, base_url: str, city: str) -> Optional[Dict[str, Any]]:
+    """
+    Solicita datos climáticos para el MVP usando una sesión persistente y headers.
+    """
+    params = {
+        "key": api_key,
+        "q": city,
+        "lang": "es"
+    }
 
-        # Si pasamos una API Key, la incluimos de forma global en la sesión
-        if api_key:
-            self.session.headers.update({"X-API-KEY": api_key})
+    start_time = time.time()
 
-    def fetch_weather(self, endpoint, params=None):
-        """Método simple para obtener datos usando la sesión y headers configurados"""
-        url = f"{self.base_url}/{endpoint}"
+    try:
+        # Usamos '_session' en lugar de 'requests' directamente
+        response = _session.get(
+            f"{base_url}/current.json",
+            params=params,
+            timeout=10
+        )
 
-        try:
-            # La sesión ya incluye los headers automáticamente
-            response = self.session.get(url, params=params, timeout=10)
-            response.raise_for_status() # Lanza error si la respuesta es mala (4xx o 5xx)
+        latency = time.time() - start_time
+        log_info(f"Latencia de la API para '{city}': {latency:.4f} segundos")
+
+        if response.status_code == 200:
             return response.json()
-
-        except requests.exceptions.RequestException as e:
-            # Aquí podrías conectar con tu logger de backend/utils/
-            print(f"[Error] Fallo en la conexión con la API: {e}")
+        else:
+            log_error(f"Error en WeatherAPI: Status {response.status_code} para la ciudad {city}")
             return None
 
-    def close_session(self):
-        """Cerramos la sesión para liberar recursos"""
-        self.session.close()
+    except requests.exceptions.RequestException as e:
+        log_error(f"Fallo crítico en la conexión con WeatherAPI: {str(e)}")
+        return None
