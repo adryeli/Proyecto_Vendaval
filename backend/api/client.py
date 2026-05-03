@@ -3,9 +3,19 @@ import time
 from typing import Optional, Dict, Any
 from backend.utils.logger_config import log_info, log_error
 
+# --- CONFIGURACIÓN DE SESIÓN Y HEADERS ---
+# Creamos una sesión global para el módulo. Esto gestiona las conexiones de forma eficiente.
+_session = requests.Session()
+
+# Configuramos los Headers que se enviarán en cada petición
+_session.headers.update({
+    "User-Agent": "ProyectoVendaval/1.0",
+    "Accept": "application/json"
+})
+
 def fetch_weather_data(api_key: str, base_url: str, city: str) -> Optional[Dict[str, Any]]:
     """
-    Solicita datos climáticos para el MVP.
+    Solicita datos climáticos para el MVP usando una sesión persistente y headers.
     """
     params = {
         "key": api_key,
@@ -16,7 +26,8 @@ def fetch_weather_data(api_key: str, base_url: str, city: str) -> Optional[Dict[
     start_time = time.time()
 
     try:
-        response = requests.get(
+        # Usamos '_session' en lugar de 'requests' directamente
+        response = _session.get(
             f"{base_url}/current.json",
             params=params,
             timeout=10
