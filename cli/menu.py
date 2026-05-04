@@ -85,7 +85,7 @@ def show_menu(usuario: dict) -> None:
         console.print(f"\n[bold cyan]Hola, {usuario['username']}[/bold cyan]  —  ¿Qué quieres hacer?\n")
 
         console.print("  [bold]1.[/bold] 📝  Registro manual de datos")
-        console.print("  [bold]2.[/bold] 🌐  Ingesta automática (WeatherAPI)")
+        console.print("  [bold]2.[/bold] 🌐  Registro automático de clima")
         console.print("  [bold]3.[/bold] 📊  Consultar histórico")
         console.print("  [bold]4.[/bold] 🚨  Ver alertas del histórico")
         console.print("  [bold]5.[/bold] 🗺   Cambiar mi zona")
@@ -98,7 +98,7 @@ def show_menu(usuario: dict) -> None:
             _submenu_registro_manual()
 
         elif opcion == "2":
-            log_info(f"Usuario '{usuario['username']}' → Ingesta automática")
+            log_info(f"Usuario '{usuario['username']}' → Registro automático de clima")
             _submenu_ingesta_api()
 
         elif opcion == "3":
@@ -131,56 +131,75 @@ def _submenu_registro_manual() -> None:
     """
     Submenú para registrar un dato climático manualmente.
 
-    Pide todos los datos al usuario (fecha, zona, temperatura, etc.),
-    evalúa alertas y guarda el registro en el JSON.
-
-    No devuelve ningún valor.
+    Permite revisar el resumen antes de guardar. Si el usuario se equivoca,
+    puede repetir el formulario o volver al menú sin guardar.
     """
-    limpiar_pantalla()
-    mostrar_encabezado("📝 Registro manual de datos", "Introduce los datos climáticos paso a paso")
+    while True:
+        limpiar_pantalla()
+        mostrar_encabezado("📝 Registro manual de datos", "Introduce los datos climáticos paso a paso")
+        console.print("[dim]Consejo: en selección de zona puedes escribir 0 para volver.[/dim]")
 
-    fecha = pedir_fecha()
+        fecha = pedir_fecha()
 
-    zona, ciudad = pedir_zona()
-    if zona is None:
-        mostrar_error("No se pudo cargar la lista de zonas.")
-        console.input("\n[dim]Pulsa Enter para volver...[/dim]")
+        zona, ciudad = pedir_zona()
+        if zona is None:
+            mostrar_info("Has vuelto al menú anterior sin guardar datos.")
+            console.input("\n[dim]Pulsa Enter para volver...[/dim]")
+            return
+
+        temperatura = pedir_temperatura()
+        humedad = pedir_humedad()
+        viento = pedir_viento()
+        lluvia = pedir_lluvia()
+
+        registro = manual_weather_record(
+            city=ciudad,
+            zone=zona,
+            temperature_c=temperatura,
+            humidity_pct=humedad,
+            wind_kph=viento,
+            rain_mm=lluvia,
+            timestamp=fecha
+        )
+
+        if registro is None:
+            mostrar_error("El registro manual no es válido.")
+            console.input("\n[dim]Pulsa Enter para volver...[/dim]")
+            return
+
+        limpiar_pantalla()
+        mostrar_encabezado("📋 Resumen del registro")
+        mostrar_tabla_registro(registro)
+
+        alertas = registro.get("alerts", {}).get("messages", [])
+        mostrar_tabla_alertas(alertas)
+
+        console.print("\n[bold cyan]¿Qué quieres hacer con este registro?[/bold cyan]")
+        console.print("  [bold]1.[/bold] Guardar registro")
+        console.print("  [bold]2.[/bold] Corregir / repetir registro")
+        console.print("  [bold]3.[/bold] Volver sin guardar\n")
+
+        opcion = console.input("[bold yellow]▶  Elige una opción: [/bold yellow]").strip()
+
+        if opcion == "1":
+            save_record(registro)
+            mostrar_exito("Registro manual guardado correctamente.")
+            console.input("\n[dim]Pulsa Enter para volver al menú...[/dim]")
+            return
+
+        if opcion == "2":
+            mostrar_info("Vamos a repetir el formulario para corregir los datos.")
+            console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
+            continue
+
+        if opcion == "3":
+            mostrar_info("Registro descartado. Vuelves al menú principal.")
+            console.input("\n[dim]Pulsa Enter para volver...[/dim]")
+            return
+
+        mostrar_error("Opción no válida. No se ha guardado el registro.")
+        console.input("\n[dim]Pulsa Enter para volver al menú...[/dim]")
         return
-
-    temperatura = pedir_temperatura()
-    humedad = pedir_humedad()
-    viento = pedir_viento()
-    lluvia = pedir_lluvia()
-
-    registro = manual_weather_record(
-        city=ciudad,
-        zone=zona,
-        temperature_c=temperatura,
-        humidity_pct=humedad,
-        wind_kph=viento,
-        rain_mm=lluvia,
-        timestamp=fecha
-    )
-
-    if registro is None:
-        mostrar_error("El registro manual no es válido.")
-        console.input("\n[dim]Pulsa Enter para volver...[/dim]")
-        return
-
-    limpiar_pantalla()
-    mostrar_encabezado("📋 Resumen del registro")
-    mostrar_tabla_registro(registro)
-
-    alertas = registro.get("alerts", {}).get("messages", [])
-    mostrar_tabla_alertas(alertas)
-
-    if pedir_confirmacion("\n¿Guardar este registro?"):
-        save_record(registro)
-        mostrar_exito("Registro manual guardado correctamente.")
-    else:
-        mostrar_info("Registro descartado.")
-
-    console.input("\n[dim]Pulsa Enter para volver al menú...[/dim]")
 
 
 # ==============================
@@ -196,10 +215,10 @@ def _submenu_ingesta_api() -> None:
     No devuelve ningún valor.
     """
     limpiar_pantalla()
-    mostrar_encabezado("🌐 Ingesta automática", "Obtiene datos en tiempo real desde WeatherAPI")
+    mostrar_encabezado("🌐 Registro automático de clima", "Obtiene y guarda datos en tiempo real desde WeatherAPI")
 
     console.print("\n[bold]1.[/bold] Elegir una ciudad")
-    console.print("[bold]2.[/bold] Ingestar todas las ciudades")
+    console.print("[bold]2.[/bold] Registrar automáticamente todas las ciudades")
     console.print("[bold]3.[/bold] Volver\n")
 
     opcion = console.input("[bold yellow]▶  Elige una opción: [/bold yellow]").strip()
@@ -255,9 +274,11 @@ def _submenu_historico() -> None:
     """
     Submenú para consultar el histórico de registros climáticos.
 
-    Permite ver todos los registros o filtrar por zona.
-
-    No devuelve ningún valor.
+    Permite:
+    - Ver todos los registros.
+    - Filtrar por zona.
+    - Filtrar por fecha.
+    - Filtrar por zona y fecha.
     """
     limpiar_pantalla()
     mostrar_encabezado("📊 Histórico de registros")
@@ -266,38 +287,98 @@ def _submenu_historico() -> None:
         console.print("\n[bold cyan]¿Cómo quieres consultar el histórico?[/bold cyan]\n")
         console.print("  [bold]1.[/bold] Ver todos los registros")
         console.print("  [bold]2.[/bold] Filtrar por zona")
-        console.print("  [bold]3.[/bold] Volver al menú principal\n")
+        console.print("  [bold]3.[/bold] Filtrar por fecha")
+        console.print("  [bold]4.[/bold] Filtrar por zona y fecha")
+        console.print("  [bold]5.[/bold] Volver al menú principal\n")
 
         opcion = console.input("[bold yellow]▶  Elige una opción: [/bold yellow]").strip()
 
         if opcion == "1":
             registros = get_all_records()
+
             limpiar_pantalla()
             mostrar_encabezado("📊 Todos los registros")
             mostrar_tabla_historico(registros)
+
             console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
 
         elif opcion == "2":
             console.print("\n[bold]Selecciona la zona a filtrar:[/bold]")
             zona_filtro, ciudad_filtro = pedir_zona()
 
-            if zona_filtro:
-                todos = get_all_records()
-                filtrados = {
-                    k: v for k, v in todos.items()
-                    if v.get("zone") == zona_filtro
-                }
-                limpiar_pantalla()
-                mostrar_encabezado(f"📊 Registros de {ciudad_filtro} ({zona_filtro})")
-                mostrar_tabla_historico(filtrados)
+            if zona_filtro is None:
+                mostrar_info("Has vuelto al menú anterior.")
                 console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
+                continue
+
+            todos = get_all_records()
+
+            filtrados = {
+                clave: registro
+                for clave, registro in todos.items()
+                if registro.get("zone") == zona_filtro
+            }
+
+            limpiar_pantalla()
+            mostrar_encabezado(f"📊 Registros de {ciudad_filtro} ({zona_filtro})")
+            mostrar_tabla_historico(filtrados)
+
+            console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
 
         elif opcion == "3":
+            fecha_filtro = console.input(
+                "[bold white]Introduce fecha a consultar (YYYY-MM-DD): [/bold white]"
+            ).strip()
+
+            todos = get_all_records()
+
+            filtrados = {
+                clave: registro
+                for clave, registro in todos.items()
+                if registro.get("timestamp", "").startswith(fecha_filtro)
+            }
+
+            limpiar_pantalla()
+            mostrar_encabezado(f"📊 Registros del día {fecha_filtro}")
+            mostrar_tabla_historico(filtrados)
+
+            console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
+
+        elif opcion == "4":
+            console.print("\n[bold]Selecciona la zona a filtrar:[/bold]")
+            zona_filtro, ciudad_filtro = pedir_zona()
+
+            if zona_filtro is None:
+                mostrar_info("Has vuelto al menú anterior.")
+                console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
+                continue
+
+            fecha_filtro = console.input(
+                "[bold white]Introduce fecha a consultar (YYYY-MM-DD): [/bold white]"
+            ).strip()
+
+            todos = get_all_records()
+
+            filtrados = {
+                clave: registro
+                for clave, registro in todos.items()
+                if registro.get("zone") == zona_filtro
+                and registro.get("timestamp", "").startswith(fecha_filtro)
+            }
+
+            limpiar_pantalla()
+            mostrar_encabezado(
+                f"📊 Registros de {ciudad_filtro} ({zona_filtro}) del día {fecha_filtro}"
+            )
+            mostrar_tabla_historico(filtrados)
+
+            console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
+
+        elif opcion == "5":
             break
 
         else:
-            mostrar_error("Opción no válida.")
-
+            mostrar_error("Opción no válida. Elige un número del 1 al 5.")
 
 # ==============================
 # SUBMENÚ 4 — ALERTAS

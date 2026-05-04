@@ -125,36 +125,40 @@ def pedir_lluvia() -> float:
 
 def pedir_fecha() -> str:
     """
-    Pide al usuario una fecha en formato YYYY-MM-DD.
+    Pide al usuario una fecha y hora en formato YYYY-MM-DD HH:MM.
+
+    Si el usuario pulsa Enter, usa la fecha y hora actual.
 
     Valida que:
     - El formato sea correcto.
-    - La fecha no sea futura.
+    - La fecha/hora no sea futura.
 
-    No recibe parámetros.
     Devuelve:
-        str: La fecha validada en formato 'YYYY-MM-DD'.
+        str: Fecha y hora validada en formato 'YYYY-MM-DD HH:MM'.
     """
     while True:
         entrada = console.input(
-            "[bold white]📅 Fecha (YYYY-MM-DD, o Enter para hoy): [/bold white]"
+            "[bold white]📅 Fecha y hora (YYYY-MM-DD HH:MM: [/bold white]"
         ).strip()
 
-        # Si el usuario pulsa Enter sin escribir nada, usamos la fecha de hoy
+        # Si el usuario pulsa Enter, usamos fecha y hora actual
         if not entrada:
-            hoy = datetime.now().strftime("%Y-%m-%d")
-            console.print(f"[dim]Usando fecha de hoy: {hoy}[/dim]")
-            return hoy
+            ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
+            console.print(f"[dim]Usando fecha y hora actual: {ahora}[/dim]")
+            return ahora
 
-        # Intentamos interpretar la fecha con el formato esperado
+        # Intentamos interpretar fecha y hora
         try:
-            fecha = datetime.strptime(entrada, "%Y-%m-%d")
+            fecha_hora = datetime.strptime(entrada, "%Y-%m-%d %H:%M")
         except ValueError:
-            mostrar_error(f"'{entrada}' no tiene el formato correcto. Usa YYYY-MM-DD (ejemplo: 2026-05-01)")
+            mostrar_error(
+                f"'{entrada}' no tiene el formato correcto. Usa YYYY-MM-DD HH:MM "
+                "(ejemplo: 2026-05-04 18:30)"
+            )
             continue
 
         # Comprobamos que no sea una fecha futura
-        if fecha > datetime.now():
+        if fecha_hora > datetime.now():
             mostrar_error("No puedes registrar datos de fechas futuras.")
             continue
 
@@ -209,13 +213,17 @@ def pedir_zona() -> tuple:
 
     while True:
         entrada = console.input(
-            f"\n[bold white]Selecciona una zona (1-{len(zonas)}): [/bold white]"
+            f"\n[bold white]Selecciona una zona (1-{len(zonas)}) o 0 para volver: [/bold white]"
         ).strip()
+
+        # Permitimos volver al menú anterior sin romper el programa.
+        if entrada == "0":
+            return None, None
 
         try:
             indice = int(entrada) - 1  # Restamos 1 porque las listas empiezan en 0
         except ValueError:
-            mostrar_error(f"Escribe un número entre 1 y {len(zonas)}.")
+            mostrar_error(f"Escribe un número entre 1 y {len(zonas)}, o 0 para volver.")
             continue
 
         if 0 <= indice < len(zonas):
