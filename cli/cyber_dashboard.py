@@ -3,7 +3,9 @@ import pandas as pd
 import mplcyberpunk
 import json
 import os
-from matplotlib.widgets import RadioButtons, Button, CheckButtons
+from matplotlib.widgets import RadioButtons, Button, CheckButtons, RangeSlider
+import matplotlib.image as mpimg
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 def load_all_data():
     all_data = []
@@ -19,6 +21,19 @@ def load_all_data():
     return df
 
 def run_dashboard():
+    # 1. MOVER EL LOGO AQUÍ (Dentro de la función)
+    print("""
+    \033[96m
+    ██╗   ██╗███████╗███╗   ██╗██████╗  █████╗ ██╗   ██╗ █████╗ ██╗     
+    ██║   ██║██╔════╝████╗  ██║██╔══██╗██╔══██╗██║   ██║██╔══██╗██║     
+    ██║   ██║█████╗  ██╔██╗ ██║██║  ██║███████║██║   ██║███████║██║     
+    ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║██║  ██║██╔══██║╚██╗ ██╔╝██╔══██║██║     
+     ╚████╔╝ ███████╗██║ ╚████║██████╔╝██║  ██║ ╚████╔╝ ██║  ██║███████╗
+      ╚═══╝  ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═╝╚══════╝
+    [ BARLOVENTO DATA - SISTEMA DE MONITOREO CLIMÁTICO ]
+    \033[0m
+    """)
+
     df = load_all_data()
     if df.empty: return
 
@@ -42,6 +57,11 @@ def run_dashboard():
     # top: espacio para el título cyberpunk
     plt.subplots_adjust(left=0.12, right=0.75, top=0.88, bottom=0.20)
 
+    # --- PREPARACIÓN DE FECHAS PARA EL FILTRO ---
+    fechas_unicas = df['timestamp'].sort_values().unique()
+    total_fechas = len(fechas_unicas)
+    rango_actual = [0, total_fechas - 1] # Por defecto: de la primera a la última fecha
+
     VAR_MAP = {
         'Temperatura': {'col': 'temperature_c', 'color': '#08F7FE'},
         'Humedad':     {'col': 'humidity_pct',  'color': '#FE53BB'},
@@ -55,12 +75,17 @@ def run_dashboard():
         ax.set_facecolor('#1c1f23') 
         ax.grid(color='#444d56', linestyle=':', alpha=0.4)
         
-        df_media_nac = df.groupby('timestamp').mean(numeric_only=True).reset_index().tail(15)
-        data_city = df[df['city'] == seleccion_ciudad].tail(15)
+        # --- FILTRO TEMPORAL ---
+        fecha_inicio = fechas_unicas[int(rango_actual[0])]
+        fecha_fin = fechas_unicas[int(rango_actual[1])]
+        
+        df_filtrado = df[(df['timestamp'] >= fecha_inicio) & (df['timestamp'] <= fecha_fin)]
+        
+        # --- GENERACIÓN DE DATOS (SIN .tail(15) para mostrar todo) ---
+        df_media_nac = df_filtrado.groupby('timestamp').mean(numeric_only=True).reset_index()
+        data_city = df_filtrado[df_filtrado['city'] == seleccion_ciudad]
 
         UNIDADES = {'Temperatura': '°C', 'Humedad': '%', 'Viento': 'km/h', 'Lluvia': 'mm'}
-
-        # Lista para guardar solo los "dibujos" que queremos en la leyenda
         objetos_leyenda = []
         nombres_leyenda = []
 
@@ -69,39 +94,64 @@ def run_dashboard():
                 config = VAR_MAP[v_name]
                 unidad = UNIDADES.get(v_name, "")
                 
-                # 1. Media Nacional (SIN label para que no ensucie)
                 ax.plot(df_media_nac['timestamp'], df_media_nac[config['col']], 
                         color=config['color'], linestyle='--', linewidth=1, alpha=0.2)
                 
-                # 2. Ciudad o Selección Actual
-                # Usamos una variable temporal 'linea' para capturar el objeto
-                linea, = ax.plot([], []) # Creamos base para el color
+                linea, = ax.plot([], []) 
                 
                 if not data_city.empty and seleccion_ciudad != " [ MEDIA ESPAÑA ] ":
                     linea, = ax.plot(data_city['timestamp'], data_city[config['col']], 
                                     color=config['color'], linewidth=3, marker='o')
                 else:
-                    # Si es Media España, usamos la línea punteada como referencia sólida
                     linea, = ax.plot(df_media_nac['timestamp'], df_media_nac[config['col']], 
                                     color=config['color'], linewidth=2)
 
-                # GUARDAMOS SOLO ESTA LÍNEA PARA LA LEYENDA
                 objetos_leyenda.append(linea)
                 nombres_leyenda.append(f"{v_name} ({unidad})")
 
         try: mplcyberpunk.make_lines_glow(ax)
         except: pass
 
-        # --- LEYENDA PURA Y PERSISTENTE ---
         if objetos_leyenda:
             leg = ax.legend(objetos_leyenda, nombres_leyenda,
-                           loc='upper left', 
-                           bbox_to_anchor=(0.01, 0.99),
-                           frameon=True, 
-                           facecolor='#0d1117', 
-                           edgecolor='#444d56', 
-                           fontsize=8)
+                           loc='upper left', bbox_to_anchor=(0.01, 0.99),
+                           frameon=True, facecolor='#0d1117', edgecolor='#444d56', fontsize=8)
             plt.setp(leg.get_texts(), color='#e6edf3')
+
+        # --- TÍTULO CON RANGO DE FECHAS DINÁMICO ---
+        f_ini_str = pd.to_datetime(fecha_inicio).strftime('%Y-%m-%d')
+        f_fin_str = pd.to_datetime(fecha_fin).strftime('%Y-%m-%d')
+        titulo = f"MONITORIZACIÓN: {seleccion_ciudad.upper()}\n[ {f_ini_str}  --->  {f_fin_str} ]"
+        
+        ax.set_title(titulo, color='white', pad=20, fontweight='bold', fontsize=12)
+        plt.setp(ax.get_xticklabels(), rotation=30, ha='right', color='#8b949e')
+
+        # --- INSERCIÓN DEL LOGO EN LA VENTANA (ESQUINA SUPERIOR IZQUIERDA) ---
+        try:
+            logo_path = "config/logo.png" # Ruta actualizada
+            if os.path.exists(logo_path):
+                img = mpimg.imread(logo_path)
+                
+                # Zoom reducido para que sea discreto (ajusta el 0.08 si sigue siendo grande)
+                imagebox = OffsetImage(img, zoom=0.025) 
+                
+                # 'figure fraction' lo posiciona respecto a la VENTANA total
+                # (0.02, 0.98) es casi el borde superior izquierdo
+                ab = AnnotationBbox(imagebox, (0.85, 0.98), 
+                                    xycoords='figure fraction',
+                                    frameon=False, 
+                                    box_alignment=(0, 1)) # Punto de anclaje: arriba-izquierda del logo
+                
+                fig.add_artist(ab)
+        except:
+            pass
+
+        # Título actualizado con el nombre del programa
+        f_ini_str = pd.to_datetime(fecha_inicio).strftime('%Y-%m-%d')
+        f_fin_str = pd.to_datetime(fecha_fin).strftime('%Y-%m-%d')
+        titulo = f"SISTEMA VENDAVAL: {seleccion_ciudad.upper()}\n[ {f_ini_str}  --->  {f_fin_str} ]"
+        
+        ax.set_title(titulo, color='white', pad=25, fontweight='bold', fontsize=13)
 
         ax.set_title(f"MONITORIZACIÓN: {seleccion_ciudad.upper()}", color='white', pad=25, fontweight='bold')
         plt.setp(ax.get_xticklabels(), rotation=30, ha='right', color='#8b949e')
@@ -193,9 +243,42 @@ def run_dashboard():
     
     check.on_clicked(func_check)
 
+    # --- 6. CONTROL DE TIEMPO (RANGE SLIDER) CON FECHAS REALES ---
+    ax_slider = plt.axes([0.40, 0.05, 0.33, 0.04], facecolor='#21262d')
+    slider_tiempo = RangeSlider(ax_slider, 'Filtro Temporal', 0, total_fechas - 1, 
+                                valinit=(0, total_fechas - 1), valfmt="%d")
+    
+    slider_tiempo.label.set_color('white')
+    slider_tiempo.label.set_fontweight('bold')
+
+    def al_mover_slider(val):
+        # 1. Actualizamos el rango interno
+        rango_actual[0] = int(val[0])
+        rango_actual[1] = int(val[1])
+        
+        # 2. Obtenemos las fechas correspondientes a esos números
+        f_ini = pd.to_datetime(fechas_unicas[rango_actual[0]]).strftime('%d/%m/%y')
+        f_fin = pd.to_datetime(fechas_unicas[rango_actual[1]]).strftime('%d/%m/%y')
+        
+        # 3. HACK: Forzamos el texto del slider para que muestre las fechas
+        slider_tiempo.valtext.set_text(f"({f_ini} - {f_fin})")
+        slider_tiempo.valtext.set_color('#08F7FE') # Color cian para que resalte
+        
+        # 4. Redibujamos el gráfico
+        dibujar_escena(ciudad_activa[0])
+        
+    slider_tiempo.on_changed(al_mover_slider)
+
+    # Forzamos el texto inicial al arrancar para que no salgan los ceros
+    f_ini_init = pd.to_datetime(fechas_unicas[0]).strftime('%d/%m/%y')
+    f_fin_init = pd.to_datetime(fechas_unicas[-1]).strftime('%d/%m/%y')
+    slider_tiempo.valtext.set_text(f"({f_ini_init} - {f_fin_init})")
+
     actualizar_menu(0, items_por_pagina)
     dibujar_escena(ciudad_activa[0])
     plt.show()
 
+# Este bloque es el que permite que el archivo funcione 
+# cuando lo ejecutas tú solo, pero no molesta cuando lo llaman otros.
 if __name__ == "__main__":
     run_dashboard()
