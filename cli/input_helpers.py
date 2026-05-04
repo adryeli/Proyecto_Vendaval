@@ -138,7 +138,7 @@ def pedir_fecha() -> str:
     """
     while True:
         entrada = console.input(
-            "[bold white]📅 Fecha y hora (YYYY-MM-DD HH:MM: [/bold white]"
+            "[bold white]📅 Fecha y hora (YYYY-MM-DD HH:MM): [/bold white]"
         ).strip()
 
         # Si el usuario pulsa Enter, usamos fecha y hora actual
