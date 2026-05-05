@@ -56,6 +56,7 @@ from backend.storage.json_repo import save_record, get_all_records
 from backend.utils.logger_config import log_info, log_warning
 from backend.core.compare import comparar_ciudad
 from backend.scheduler.scheduler import start_schedule_all, start_schedule_city 
+from backend.stats.cyber_dashboard import run_dashboard
 
 console = Console()
 
@@ -114,7 +115,7 @@ def show_menu(usuario: dict) -> None:
 
         elif opcion == "5":
             log_info(f"Usuario '{usuario['username']}' → Estadísticas")
-            _submenu_estadisticas_en_construccion()
+            _submenu_estadisticas()
 
         elif opcion == "6":
             log_info(f"Usuario '{usuario['username']}' → Cambiar zona")
@@ -575,30 +576,25 @@ def _submenu_historial_alertas() -> None:
 # SUBMENÚ 5 — ESTADÍSTICAS (EN CONSTRUCCIÓN)
 # ==============================
 
-def _submenu_estadisticas_en_construccion() -> None:
+def _submenu_estadisticas() -> None:
     """
-    Placeholder para el submenú de estadísticas.
+    Abre el dashboard interactivo de estadísticas.
 
-    Esta funcionalidad está pendiente de implementación.
-    Cuando el código del backend de estadísticas esté listo,
-    se sustituirá este mensaje por las llamadas correspondientes.
-
-    No recibe parámetros.
-    No devuelve ningún valor.
+    La ventana de Matplotlib se abre en primer plano.
+    Al cerrarla (o si falla), se regresa al menú principal.
     """
     limpiar_pantalla()
+    mostrar_encabezado("📈  Dashboard de estadísticas")
+    console.print("[dim]Abriendo el panel de visualización...[/dim]\n")
+    console.print("[dim]Cierra la ventana gráfica para volver al menú.[/dim]\n")
 
-    # Panel informativo de "en construcción"
-    # Se eliminará cuando el backend de estadísticas esté disponible
-    console.print("\n")
-    console.print(
-        "[bold yellow]📈  ESTADÍSTICAS REGISTRADAS[/bold yellow]\n\n"
-        "[dim]Esta funcionalidad estará disponible próximamente.\n"
-        "El equipo está trabajando en el módulo de estadísticas.[/dim]",
-    )
-    console.print("\n[dim]🚧  En construcción 🚧[/dim]\n")
-
-    console.input("[dim]Pulsa Enter para volver al menú...[/dim]")
+    try:
+        run_dashboard()
+    except Exception as e:
+        log_warning(f"Error al abrir el dashboard: {e}")
+        mostrar_error(f"No se pudo abrir el dashboard: {e}")
+    finally:
+        console.input("\n[dim]Pulsa Enter para volver al menú...[/dim]")
 
 
 # ==============================

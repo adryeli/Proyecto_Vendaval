@@ -246,9 +246,11 @@ def run_dashboard():
                     # Solo hoy: desde medianoche hasta fin del día (horas futuras permitidas)
                     range_start = ahora
                     range_end   = ahora.replace(hour=23, minute=59, second=59, microsecond=999999)
+                
                 elif n == 'Semana':
                     range_start = ahora - pd.Timedelta(weeks=1)
-                    range_end   = ahora
+                    range_end   = pd.Timestamp.now()
+
                 elif n == 'Mes':
                     range_start = ahora.replace(day=1)
                     range_end   = (range_start + pd.DateOffset(months=1)) - pd.Timedelta(microseconds=1)
