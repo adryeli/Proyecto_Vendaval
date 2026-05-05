@@ -28,8 +28,8 @@
 
 | Video | Descripción |
 |-------|-------------|
-| ▶️ [**Demo de la app 1**](https://youtu.be/_EKjp1RLyEs) | Ve cómo funciona el menú, el registro y las alertas |
-| ▶️ [**Demo de la app 2**](https://youtu.be/3hFjrRq-mt0) | Errores de API/Log y comparativa registro manual/ingesta API |
+| ▶️ [**Demo de la app 1**](https://youtu.be/3hFjrRq-mt0) | Ve cómo funciona el menú, el registro y las alertas |
+| ▶️ [**Demo de la app 2**](https://youtu.be/_EKjp1RLyEs) | Errores de API/Log y comparativa registro manual/ingesta API |
 
 ---
 
