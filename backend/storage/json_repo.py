@@ -48,8 +48,11 @@ def save_record(record: dict, file_path: str = DEFAULT_FILE_PATH) -> bool:
     except (FileNotFoundError, json.JSONDecodeError):
         data = {}
     
-    # Construimos nuestra Clave Compuesta: timestamp + zona
-    clave = f"{record['timestamp']}_{record['zone']}"
+    # Construimos una clave compuesta única.
+    # Antes se usaba solo timestamp + zone. Eso provocaba sobrescrituras cuando
+    # varias ciudades de la misma zona tenían la misma hora de actualización.
+    # Añadimos city para conservar un registro por ciudad.
+    clave = f"{record['timestamp']}_{record['zone']}_{record['city']}"
     
     # Guardamos/Actualizamos el registro
     data[clave] = record
