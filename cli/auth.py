@@ -29,6 +29,7 @@ from cli.display_helpers import (
     mostrar_exito,
     mostrar_error,
     mostrar_advertencia,
+    mostrar_info,
     mostrar_separador,
     limpiar_pantalla
 )
@@ -45,6 +46,52 @@ from backend.utils.logger_config import log_info, log_warning
 RUTA_USUARIOS = os.path.join(
     os.path.dirname(__file__), "..", "data", "users.json"
 )
+
+
+
+
+# Valor interno usado para indicar que el usuario quiere volver atrás.
+VOLVER = "__VOLVER__"
+
+def _pedir_texto_o_volver(mensaje: str, longitud_min: int = 1) -> str:
+    """
+    Pide texto permitiendo escribir 0 para volver al menú anterior.
+    """
+    from rich.console import Console
+    console = Console()
+
+    while True:
+        entrada = console.input(
+            f"[bold white]{mensaje} ([cyan]0 = volver[/cyan]): [/bold white]"
+        ).strip()
+
+        if entrada == "0":
+            return VOLVER
+
+        if len(entrada) >= longitud_min:
+            return entrada
+
+        mostrar_error(
+            f"Este campo requiere al menos {longitud_min} carácter(es). "
+            f"Has introducido {len(entrada)}."
+        )
+
+
+def _pedir_contrasena_o_volver(mensaje: str = "🔑 Contraseña") -> str:
+    """
+    Pide contraseña permitiendo escribir 0 para volver al menú anterior.
+    """
+    from rich.console import Console
+    console = Console()
+    entrada = console.input(
+        f"[bold white]{mensaje} ([cyan]0 = volver[/cyan]): [/bold white]",
+        password=True
+    )
+
+    if entrada == "0":
+        return VOLVER
+
+    return entrada
 
 
 # ==============================
@@ -150,7 +197,11 @@ def registrar_usuario() -> bool:
     mostrar_separador()
 
     while True:
-        username = pedir_texto("👤 Nombre de usuario", longitud_min=3)
+        username = _pedir_texto_o_volver("👤 Nombre de usuario", longitud_min=3)
+
+        if username == VOLVER:
+            mostrar_info("Registro cancelado. Vuelves al menú de acceso.")
+            return False
 
         # Comprobamos que el nombre de usuario no esté ya registrado
         if any(u["username"] == username for u in usuarios):
@@ -167,7 +218,11 @@ def registrar_usuario() -> bool:
     console.print("[dim]Mínimo 6 caracteres.[/dim]")
 
     while True:
-        contrasena = pedir_contrasena("🔑 Contraseña")
+        contrasena = _pedir_contrasena_o_volver("🔑 Contraseña")
+
+        if contrasena == VOLVER:
+            mostrar_info("Registro cancelado. Vuelves al menú de acceso.")
+            return False
 
         if len(contrasena) < 6:
             mostrar_error("La contraseña debe tener al menos 6 caracteres.")
@@ -178,7 +233,11 @@ def registrar_usuario() -> bool:
         # ==============================
 
         console.print("\n[dim][PASO 3/3] Confirmar contraseña[/dim]")
-        confirmacion = pedir_contrasena("🔑 Repite la contraseña")
+        confirmacion = _pedir_contrasena_o_volver("🔑 Repite la contraseña")
+
+        if confirmacion == VOLVER:
+            mostrar_info("Registro cancelado. Vuelves al menú de acceso.")
+            return False
 
         if contrasena != confirmacion:
             mostrar_error("Las contraseñas no coinciden. Inténtalo de nuevo.")
@@ -243,9 +302,16 @@ def iniciar_sesion() -> dict | None:
         console.print(f"\n[dim]Intento {intento}/{MAX_INTENTOS}[/dim]")
         mostrar_separador()
 
-        # Pedimos usuario y contraseña
-        username = pedir_texto("👤 Usuario")
-        contrasena = pedir_contrasena("🔑 Contraseña")
+        # Pedimos usuario y contraseña. En ambos campos se puede escribir 0 para volver.
+        username = _pedir_texto_o_volver("👤 Usuario")
+        if username == VOLVER:
+            mostrar_info("Login cancelado. Vuelves al menú de acceso.")
+            return None
+
+        contrasena = _pedir_contrasena_o_volver("🔑 Contraseña")
+        if contrasena == VOLVER:
+            mostrar_info("Login cancelado. Vuelves al menú de acceso.")
+            return None
 
         # Hasheamos la contraseña introducida para compararla
         hash_introducido = _hashear_contrasena(contrasena)

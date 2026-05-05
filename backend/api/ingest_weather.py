@@ -19,6 +19,18 @@ def load_zones(file_path: str = ZONE_FILE_PATH):
         log_error(f"Error al cargar las zonas: {e}")
         return []
 
+
+
+def get_cities_by_zone(zone):
+    """
+    Devuelve las ciudades configuradas para una zona concreta.
+
+    Ejemplo:
+        get_cities_by_zone("norte") -> ["Bilbao", "Santander", ...]
+    """
+    zones = load_zones()
+    return [item["city"] for item in zones if item.get("zone") == zone and item.get("city")]
+
 def ingest_city_weather(city, zone):
     load_dotenv()
     
@@ -70,6 +82,9 @@ def ingest_zone(zone):
     return records
 
 def ingest_all_zones():
+    """
+    Recorre todas las ciudades de config/zones.json y guarda un registro por ciudad.
+    """
     zones = load_zones()
     records = []
 
