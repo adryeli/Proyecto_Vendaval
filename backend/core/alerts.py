@@ -6,8 +6,12 @@ def check_wind_alert(record):
     return record["wind_kph"] >= 70
 
 
-def check_humidity_alert(record):
-    return (0 < record["humidity_pct"] <= 20) or (70 < record["humidity_pct"] <= 100)
+def check_low_humidity_alert(record):
+    return record["humidity_pct"] < 30
+
+
+def check_high_humidity_alert(record):
+    return record["humidity_pct"] > 60
 
 
 def check_heavy_rain_alert(record):
@@ -32,10 +36,15 @@ def evaluate_alerts(record):
     if wind_active:
         messages.append("Alarma: Riesgo de viento alto")
 
-    humidity_active = check_humidity_alert(record)
-    results["humidity_alert"] = humidity_active
-    if humidity_active:
-        messages.append("Alarma: Riesgo de humedad")
+    low_humidity_active = check_low_humidity_alert(record)
+    results["low_humidity_alert"] = low_humidity_active
+    if low_humidity_active:
+        messages.append("Alarma: Humedad ambiental demasiado baja")
+
+    high_humidity_active = check_high_humidity_alert(record)
+    results["high_humidity_alert"] = high_humidity_active
+    if high_humidity_active:
+        messages.append("Alarma: Humedad ambiental demasiado alta")
 
     heavy_rain_active = check_heavy_rain_alert(record)
     results["heavy_rain_alert"] = heavy_rain_active

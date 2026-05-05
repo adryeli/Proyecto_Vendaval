@@ -215,7 +215,6 @@ def mostrar_tabla_historico(registros: dict) -> None:
         mostrar_advertencia("No hay registros en el histórico todavía.")
         return
 
-    # Tabla compacta para mostrar muchos registros a la vez
     tabla = Table(
         title="📊 Histórico de Registros",
         box=box.SIMPLE_HEAD,
@@ -224,7 +223,6 @@ def mostrar_tabla_historico(registros: dict) -> None:
         header_style="bold blue"
     )
 
-    # Columnas de la tabla
     tabla.add_column("Fecha/Hora", style="dim", min_width=16)
     tabla.add_column("Ciudad")
     tabla.add_column("Zona")
@@ -233,9 +231,16 @@ def mostrar_tabla_historico(registros: dict) -> None:
     tabla.add_column("💨 Viento", justify="right")
     tabla.add_column("🌧 Lluvia", justify="right")
     tabla.add_column("Fuente", style="dim")
+    tabla.add_column("⚡ Alertas", justify="center")
 
-    # Añadimos cada registro como una fila
     for clave, r in registros.items():
+        alertas = r.get("alerts", {}).get("messages", [])
+        estado_alertas = (
+            f"[bold red]{len(alertas)} alerta(s)[/bold red]"
+            if alertas else
+            "[green]✅ OK[/green]"
+        )
+
         tabla.add_row(
             r.get("timestamp", "—"),
             r.get("city", "—"),
@@ -244,12 +249,76 @@ def mostrar_tabla_historico(registros: dict) -> None:
             f"{r.get('humidity_pct', '—')} %",
             f"{r.get('wind_kph', '—')} km/h",
             f"{r.get('rain_mm', '—')} mm",
-            r.get("source", "—")
+            r.get("source", "—"),
+            estado_alertas
         )
 
     console.print(tabla)
     console.print(f"[dim]Total: {len(registros)} registros[/dim]")
 
+def mostrar_comparativa(resultado: dict) -> None:
+    """
+    Muestra la comparativa entre el registro histórico y el dato actual de la API.
+
+    Parámetros:
+        resultado (dict): Dict con historico, actual y discrepancias de comparar_ciudad().
+
+    No devuelve ningún valor.
+    """
+    city = resultado.get("city", "—")
+    historico = resultado.get("historico", {})
+    actual = resultado.get("actual", {})
+    discrepancias = resultado.get("discrepancias", [])
+
+    tabla = Table(
+        title=f"🔍 Manual vs API — {city}",
+        box=box.ROUNDED,
+        border_style="magenta",
+        show_header=True,
+        header_style="bold magenta"
+    )
+
+    tabla.add_column("Campo",     style="dim", width=16)
+    tabla.add_column("Histórico", justify="right",  width=16)
+    tabla.add_column("Actual",    justify="right", width=16)
+    tabla.add_column("Diff",    justify="right", width=16)
+
+    campos = [
+        ("temperature_c", "Temperatura", "°C"),
+        ("humidity_pct",  "Humedad",      "%"),
+        ("wind_kph",      "Viento",       "km/h"),
+        ("rain_mm",       "Lluvia",       "mm"),
+    ]
+
+    for campo, nombre, unidad in campos:
+        val_hist   = historico.get(campo, "—")
+        val_actual = actual.get(campo, "—")
+
+        if isinstance(val_hist, (int, float)) and isinstance(val_actual, (int, float)):
+            diff = val_actual - val_hist
+            color = "red" if abs(diff) > 5 else "green"
+            diff_str = f"[{color}]{diff:+.1f}{unidad}[/{color}]"
+        else:
+            diff_str = "—"
+
+        tabla.add_row(nombre, f"{val_hist}{unidad}", f"{val_actual}{unidad}", diff_str)
+
+    tabla.add_section()
+    tabla.add_row("Timestamp", historico.get("timestamp", "—"), actual.get("timestamp", "—"), "")
+    tabla.add_row("Fuente",    historico.get("source", "—"),    actual.get("source", "—"),    "")
+
+    console.print(tabla)
+
+    if discrepancias:
+        contenido = "\n".join(f"[bold yellow] {d}[/bold yellow]" for d in discrepancias)
+        console.print(Panel(
+            contenido,
+            title="[bold yellow] Discrepancias detectadas[/bold yellow]",
+            border_style="yellow",
+            padding=(0, 2)
+        ))
+    else:
+        mostrar_exito("Los datos históricos y actuales son consistentes.")
 
 def mostrar_tabla_alertas(alertas: list) -> None:
     """

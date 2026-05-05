@@ -34,6 +34,7 @@ from cli.display_helpers import (
     mostrar_tabla_registro,
     mostrar_tabla_historico,
     mostrar_tabla_alertas,
+    mostrar_comparativa,
     mostrar_tiempo_actual,
     pedir_confirmacion,
     limpiar_pantalla
@@ -53,6 +54,8 @@ from backend.core.alerts import evaluate_alerts
 from backend.api.manual_register import manual_weather_record
 from backend.storage.json_repo import save_record, get_all_records
 from backend.utils.logger_config import log_info, log_warning
+from backend.core.compare import comparar_ciudad
+from backend.scheduler.scheduler import start_schedule_all, start_schedule_city 
 
 console = Console()
 
@@ -86,8 +89,10 @@ def show_menu(usuario: dict) -> None:
         console.print("  [bold]3.[/bold] 📊  Consultar histórico")
         console.print("  [bold]4.[/bold] 🚨  Historial de alertas")
         console.print("  [bold]5.[/bold] 📈  Mostrar estadísticas registradas")
-        console.print("  [bold]6.[/bold] 🗺   Cambiar mi zona")
-        console.print("  [bold]7.[/bold] 🚪  Salir\n")
+        console.print("  [bold]6.[/bold] 🗺   Consultar información de una zona")
+        console.print("  [bold]7.[/bold] Comparar manual vs dato API")
+        console.print("  [bold]8.[/bold] Scheduler (Iniciar/Detener)")
+        console.print("  [bold]9.[/bold] 🚪  Salir\n")
 
         opcion = console.input("[bold yellow]▶  Elige una opción: [/bold yellow]").strip()
 
@@ -116,12 +121,65 @@ def show_menu(usuario: dict) -> None:
             usuario = _cambiar_zona_usuario(usuario)
 
         elif opcion == "7":
-            if pedir_confirmacion("¿Seguro que quieres salir?"):
-                log_info(f"Usuario '{usuario['username']}' ha cerrado sesión.")
-                break
+            limpiar_pantalla()
+            mostrar_encabezado("Comparativa histórico manual vs actual", "Selecciona una ciudad")
 
+            zona, ciudad = pedir_zona()
+
+            if zona is None:
+                continue
+
+            console.print(f"\n[dim]Obteniendo dato actual de {ciudad}...[/dim]")
+            resultado = comparar_ciudad(ciudad, zona)
+
+            if resultado is None:
+                mostrar_error("No se pudo completar la comparativa.")
+            else:
+                limpiar_pantalla()
+                mostrar_encabezado(f"Comparativa Manual vs API — {ciudad}")
+                mostrar_comparativa(resultado)
+
+            console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
+    
+        elif opcion == "8":
+            limpiar_pantalla()
+            mostrar_encabezado("Scheduler automático", "Ingesta periódica sin intervención del usuario")
+
+            console.print("\n[bold]1.[/bold] Todas las zonas")
+            console.print("[bold]2.[/bold] Una ciudad concreta")
+            console.print("[bold]3.[/bold] Volver\n")
+
+            sub = console.input("[bold yellow]▶  Elige una opción: [/bold yellow]").strip()
+
+            if sub == "1":
+                entrada = console.input("[bold yellow]▶  Minutos entre ingesta (Enter = 60): [/bold yellow]").strip()
+                minutos = int(entrada) if entrada.isdigit() else 60
+                mostrar_info(f"Iniciando scheduler para todas las zonas cada {minutos} min. Ctrl+C para detener.")
+                start_schedule_all(minutos)
+                mostrar_info("Scheduler detenido. Volviendo al menú.")
+
+            elif sub == "2":
+                zona, ciudad = pedir_zona()
+                if ciudad is None:
+                    continue
+                entrada = console.input("[bold yellow]▶  Minutos entre ingesta (Enter = 60): [/bold yellow]").strip()
+                minutos = int(entrada) if entrada.isdigit() else 60
+                mostrar_info(f"Iniciando scheduler para {ciudad} cada {minutos} min. Ctrl+C para detener.")
+                start_schedule_city(ciudad, minutos)
+                mostrar_info("Scheduler detenido. Volviendo al menú.")
+
+            elif sub == "3":
+                continue
+            else:
+                mostrar_error("Opción no válida.")
+
+        elif opcion == "9":
+                if pedir_confirmacion("¿Seguro que quieres salir?"):
+                    log_info(f"Usuario '{usuario['username']}' ha cerrado sesión.")
+                    break
+        
         else:
-            mostrar_error("Opción no válida. Elige un número del 1 al 7.")
+            mostrar_error("Opción no válida. Elige un número del 1 al 8.")
             console.input("\n[dim]Pulsa Enter para continuar...[/dim]")
 
 
