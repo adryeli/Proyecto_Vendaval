@@ -1,5 +1,5 @@
 import pytest
-from backend.core.normalizer import normalize_weather_data
+from backend.api.normalizer import normalize_weather_data
 
 @pytest.fixture
 def mock_api_data():
