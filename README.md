@@ -15,7 +15,6 @@
 [![Rich](https://img.shields.io/badge/Rich-CLI-00C7B7?style=for-the-badge)](https://rich.readthedocs.io/)
 [![WeatherAPI](https://img.shields.io/badge/WeatherAPI-Live_Data-FF6B35?style=for-the-badge)](https://www.weatherapi.com/)
 [![pytest](https://img.shields.io/badge/pytest-tested-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 *Registra · Consulta · Alerta · Visualiza*
 
@@ -43,7 +42,7 @@ Con ella puedes:
 - 📝 **Registrar** datos climáticos manualmente (temperatura, humedad, viento, lluvia)
 - 🌐 **Obtener** datos en tiempo real desde la API de WeatherAPI
 - 🚨 **Recibir alertas** automáticas cuando los valores son peligrosos
-- 📊 **Consultar** el histórico filtrado por ciudad y fecha
+- 📊 **Consultar** el histórico de tiempo y alertas filtrado por ciudad y fecha
 - 📈 **Ver estadísticas** en un dashboard gráfico interactivo
 - 🔄 **Comparar** tus registros manuales con los datos reales de la API
 
@@ -407,4 +406,12 @@ Ejemplos de preguntas que puedes hacerle:
 
 *Sistema no orientado a objetos · Python 3.12 · WeatherAPI · Rich · Matplotlib*
 
+Academic Use License
+
+Copyright (c) 2026 Proyecto Vendaval
+
+Este software se distribuye exclusivamente con fines académicos y educativos.
+No se permite su uso comercial.
+Se permite su modificación para uso educativo interno.
+No se permite su redistribución sin autorización expresa.
 </div>
