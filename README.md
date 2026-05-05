@@ -22,20 +22,20 @@
 
 ## 📋 Descripción
 
-**Proyecto Vendaval** es una solución integral diseñada para el monitoreo climático municipal en Valencia. Permite registrar, consultar y visualizar datos meteorológicos críticos de múltiples zonas geográficas en tiempo real, facilitando la toma de decisiones ante condiciones climáticas adversas.
+**Proyecto Vendaval** es una solución integral diseñada para el monitoreo climático municipal. Permite registrar, consultar y visualizar datos meteorológicos críticos de múltiples zonas geográficas en tiempo real, facilitando la toma de decisiones ante condiciones climáticas adversas.
 
 - 🌡️ **Monitoreo Real:** Datos de temperatura, humedad, viento y presión.
 - 🚨 **Alertas Inteligentes:** Sistema automático de detección de riesgos.
 - 📊 **Análisis Histórico:** Consulta y filtrado de registros pasados.
 - 💾 **Persistencia:** Almacenamiento seguro en base de datos PostgreSQL (Neon).
-- 🖥️ **Dual Interface:** Operación mediante CLI (Terminal) y Web (Streamlit).
+- 🖥️ **Dual Interface:** Operación mediante CLI (Terminal).
 
 ---
 
 ## ✨ Características Principales
 
 ### 1. Monitoreo en Tiempo Real
-- Sincronización automática con la API de **Open-Meteo**.
+- Sincronización automática con la API de **WeatherRecord**.
 - Validación de datos mediante rangos climáticos realistas.
 - Captura de datos manual y automática.
 
@@ -45,7 +45,7 @@
 
 ### 3. Interfaz de Usuario
 - **CLI:** Menú interactivo para gestión rápida desde consola.
-- **Web:** Dashboard visual con gráficas de evolución temporal.
+- **(Futuro) Web:** Dashboard visual con gráficas de evolución temporal.
 
 ---
 
@@ -91,7 +91,12 @@ pytest -v
 
 <div align="center">
 
-**Hecho con ❤️ por el equipo de Proyecto Vendaval**  
+**Hecho con ❤️ por el equipo de Proyecto Vendaval**
+**Elizabeth Sena (Scrum Master)**
+**Laura (Product Owner)**
+**David (Coder)**
+**Joel (Coder)**
+**Yohanna (Coder)**
 *Barlovento Data Solutions · SomosF5 / AI4Inclusion 2025*
 
 </div>
