@@ -47,7 +47,7 @@ def ingest_city_weather(city, zone):
         log_error(f"No se pudo obtener datos de {city}")
         return None
 
-    record=normalize_weather_data(raw_data,zone)
+    record=normalize_weather_data(raw_data,city, zone)
 
     if record is None:
         log_error(f"Error al normalizar datos de {city}")
