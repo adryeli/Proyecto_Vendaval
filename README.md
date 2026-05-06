@@ -257,7 +257,7 @@ git commit -m "docs: actualizar README"        # documentación
  
 ---
  
-### 📬 Cuando termines — abrir un Pull Request
+### 📬 Cuando termines — abrir un Pull Request (Si trabajas en equipo o quieres practicar)
  
 **1.** Sube tus últimos cambios:
 ```bash
