@@ -231,15 +231,19 @@ def mostrar_tabla_historico(registros: dict) -> None:
     tabla.add_column("💨 Viento", justify="right")
     tabla.add_column("🌧 Lluvia", justify="right")
     tabla.add_column("Fuente", style="dim")
-    tabla.add_column("⚡ Alertas", justify="center")
+    tabla.add_column("⚡ Alerts e Information", justify="center")
 
     for clave, r in registros.items():
         alertas = r.get("alerts", {}).get("messages", [])
-        estado_alertas = (
-            f"[bold red]{len(alertas)} alerta(s)[/bold red]"
-            if alertas else
-            "[green]✅ OK[/green]"
-        )
+        alarmas_reales = [a for a in alertas if a.startswith("Alarma:")]
+        infos = [i for i in alertas if i.startswith("Información:")]
+
+        if alarmas_reales:
+            estado = f"[bold red]{len(alarmas_reales)} alarma(s)[/bold red]"
+        elif infos:
+            estado = f"[cyan]{len(infos)} info[/cyan]"
+        else:
+            estado = "[green]✅ OK[/green]"
 
         tabla.add_row(
             r.get("timestamp", "—"),
@@ -250,7 +254,7 @@ def mostrar_tabla_historico(registros: dict) -> None:
             f"{r.get('wind_kph', '—')} km/h",
             f"{r.get('rain_mm', '—')} mm",
             r.get("source", "—"),
-            estado_alertas
+            estado
         )
 
     console.print(tabla)
@@ -334,11 +338,20 @@ def mostrar_tabla_alertas(alertas: list) -> None:
         return
 
     # Panel rojo para destacar que hay alertas
-    contenido = "\n".join(f"[bold red]⚡ {a}[/bold red]" for a in alertas)
+    contenido = []
+
+    for alerta in alertas:
+        if alerta.startswith("Alarma:"):
+            contenido.append(f"[bold red]⚡ {alerta}[/bold red]")
+        elif alerta.startswith("Información:"):
+            contenido.append(f"[cyan]ℹ️ {alerta}[/cyan]")
+        else:
+            contenido.append(f"[white]{alerta}[/white]")
+
     console.print(Panel(
-        contenido,
-        title="[bold red]🚨 ALERTAS ACTIVAS[/bold red]",
-        border_style="red",
+        "\n".join(contenido),
+        title="[bold red]🚨 ALERTAS E INFORMACIÓN[/bold red]",
+        border_style="white",
         padding=(0, 2)
     ))
 
@@ -376,8 +389,17 @@ def mostrar_tiempo_actual(registro: dict, alertas: list) -> None:
     )
 
     if alertas:
-        alertas_str = "\n".join(f"[red]⚡ {a}[/red]" for a in alertas)
-        contenido += f"\n\n{alertas_str}"
+        lineas_alertas = []
+
+        for alerta in alertas:
+            if alerta.startswith("Alarma:"):
+                lineas_alertas.append(f"[red]⚡ {alerta}[/red]")
+            elif alerta.startswith("Información:"):
+                lineas_alertas.append(f"[cyan]ℹ️ {alerta}[/cyan]")
+            else:
+                lineas_alertas.append(f"[white]{alerta}[/white]")
+
+        contenido += "\n\n" + "\n".join(lineas_alertas)
 
     console.print(Panel(
         contenido,

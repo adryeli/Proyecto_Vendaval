@@ -573,7 +573,7 @@ def _submenu_historial_alertas() -> None:
 
 
 # ==============================
-# SUBMENÚ 5 — ESTADÍSTICAS (EN CONSTRUCCIÓN)
+# SUBMENÚ 5 — ESTADÍSTICAS 
 # ==============================
 
 def _submenu_estadisticas() -> None:
@@ -642,10 +642,12 @@ def _mostrar_alertas_de_registros(registros: dict, titulo: str) -> None:
             mensajes = evaluate_alerts(registro).get("messages", [])
 
         # Solo añadimos los que tienen alertas
-        if mensajes:
+        alarmas_reales = [m for m in mensajes if m.startswith("Alarma:")]
+
+        if alarmas_reales:
             registros_con_alertas.append({
                 "registro": registro,
-                "alertas": mensajes
+                "alertas": alarmas_reales
             })
 
     # ==============================
