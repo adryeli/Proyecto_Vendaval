@@ -49,7 +49,7 @@ def save_record(record: dict, file_path: Optional[str] = None) -> bool:
         data = {}
 
     # Clave compuesta única (timestamp + zone + city)
-    clave = f"{record['timestamp']}_{record['zone']}_{record['city']}"
+    clave = f"{record['timestamp']}_{record['zone']}_{record['city']}_{record.get('source', 'unknown')}"
     data[clave] = record
 
     with open(file_path, 'w', encoding='utf-8') as f:
