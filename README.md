@@ -137,22 +137,142 @@ Para comprobar si ya los tienes, abre una terminal en VSCode o Windows/Linux/Mac
 
 ```bash
 python3 --version   # Debe mostrar Python 3.12.x o superior
+                    #Quizás python --version si tienes otra version instalada y simpre usar python en vez de python3 dependiendo de la version
 git --version       # Debe mostrar git version x.x.x
 ```
 
 ---
 
-### Paso 1 — Descargar el proyecto desde el terminal
-
+### Paso 1 — Haz un Fork del proyecto
+ 
+> 💡 **¿Qué es un Fork y por qué lo necesito?**
+> Imagina que el repositorio original es el libro oficial del proyecto. Tú no puedes escribir directamente en él. Un **fork** es como fotocopiar ese libro y tener tu propia copia personal donde sí puedes hacer cambios. Cuando termines, le pides al equipo que incluya tus cambios — eso es un **Pull Request**.
+ 
+**1.1** Ve al repositorio original:
+👉 [github.com/adryeli/Proyecto_Vendaval](https://github.com/adryeli/Proyecto_Vendaval)
+ 
+**1.2** Haz clic en el botón **Fork** (arriba a la derecha de la página)
+ 
+**1.3** GitHub te preguntará dónde crearlo — elige tu cuenta personal y pulsa **Create fork**
+ 
+**1.4** Ahora tienes tu propia copia en tu perfil de GitHub:
+```
+https://github.com/TU_USUARIO/Proyecto_Vendaval
+```
+ 
+**1.5** Descarga **tu fork** en tu ordenador (no el original — el tuyo):
 ```bash
-git clone https://github.com/adryeli/Proyecto_Vendaval.git
+# Cambia TU_USUARIO por tu nombre de usuario de GitHub
+git clone https://github.com/TU_USUARIO/Proyecto_Vendaval.git
 cd Proyecto_Vendaval
 ```
-
-> 💡 **¿Qué hace esto?**
-> `git clone` descarga una copia del proyecto en tu ordenador.
-> `cd` entra dentro de la carpeta del proyecto.
-
+ 
+**1.6** Conecta tu fork con el repositorio original para recibir actualizaciones del equipo:
+```bash
+git remote add upstream https://github.com/adryeli/Proyecto_Vendaval.git
+ 
+# Verifica que está bien — debes ver origin y upstream
+git remote -v
+```
+ 
+Debes ver algo así:
+```
+origin    https://github.com/TU_USUARIO/Proyecto_Vendaval.git (fetch)
+origin    https://github.com/TU_USUARIO/Proyecto_Vendaval.git (push)
+upstream  https://github.com/adryeli/Proyecto_Vendaval.git (fetch)
+upstream  https://github.com/adryeli/Proyecto_Vendaval.git (push)
+```
+ 
+---
+ 
+### Paso 1.5 — Crea tu rama de trabajo (branch)
+ 
+> 💡 **¿Qué es una rama y por qué trabajar siempre en una?**
+> Imagina que el proyecto es una casa. La rama `main` es la casa principal — siempre tiene que estar limpia y funcionando. Una **rama** es como construir una habitación nueva en un anexo separado. Trabajas ahí sin tocar la casa principal. Cuando esté lista, la conectas. Así nunca rompes lo que ya funciona.
+>
+> ⚠️ **Regla de oro: nunca trabajes directamente en `main`.**
+ 
+Antes de crear tu rama, **sincronízate con el equipo** para partir de lo más reciente:
+```bash
+git checkout main                  # asegúrate de estar en main
+git pull upstream main             # descarga lo último del proyecto original
+git push origin main               # actualiza tu fork también
+```
+ 
+Ahora crea tu rama con un nombre descriptivo:
+```bash
+# Ejemplos de buenos nombres:
+git checkout -b feature/login-pantalla        # nueva funcionalidad
+git checkout -b fix/error-alertas-humedad     # corrección de bug
+git checkout -b refactor/menu-submenus        # reorganización de código
+```
+ 
+Verifica que estás en tu rama nueva:
+```bash
+git branch
+# Aparece tu rama con * delante:
+# * feature/login-pantalla
+#   main
+```
+ 
+✅ **A partir de aquí, todo tu trabajo va en esta rama.**
+ 
+---
+ 
+### 🔄 El ciclo de trabajo diario con Git
+ 
+Una vez tienes tu rama, sigue este flujo cada día:
+ 
+```bash
+# 1. Comprueba que estás en tu rama (no en main)
+git branch
+ 
+# 2. Haz tus cambios en el código...
+ 
+# 3. Ver qué archivos cambiaste
+git status
+ 
+# 4. Preparar los cambios
+git add .                          # todos los cambios
+git add cli/menu.py                # o solo un archivo
+ 
+# 5. Guardar con un mensaje descriptivo
+git commit -m "feat: añadir pantalla de login con logo Vendaval"
+ 
+# 6. Subir tu rama a GitHub
+git push origin nombre-de-tu-rama
+ 
+# 7. Sincronizarte con el equipo (hazlo cada día antes de empezar)
+git pull upstream main
+```
+ 
+Mensajes de commit — cómo escribirlos bien:
+```bash
+git commit -m "feat: nueva funcionalidad"      # algo nuevo
+git commit -m "fix: corregir error alertas"    # corrección
+git commit -m "refactor: limpiar menu.py"      # limpieza
+git commit -m "test: añadir tests de auth"     # tests
+git commit -m "docs: actualizar README"        # documentación
+```
+ 
+---
+ 
+### 📬 Cuando termines — abrir un Pull Request
+ 
+**1.** Sube tus últimos cambios:
+```bash
+git push origin nombre-de-tu-rama
+```
+ 
+**2.** Ve a GitHub — verás un botón amarillo **"Compare & pull request"** — haz clic
+ 
+**3.** Rellena el formulario:
+- **Título:** qué hace tu cambio en una línea
+- **Descripción:** qué hiciste, cómo probarlo, de qué depende
+**4.** Asigna un revisor del equipo y pulsa **"Create pull request"**
+ 
+> ✅ El equipo revisará tu código, dará feedback y cuando esté aprobado lo mergearán a `main`.
+ 
 ---
 
 ### Paso 2 — Crear el entorno virtual
