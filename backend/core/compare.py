@@ -28,7 +28,7 @@ def _get_dato_actual(city: str, zone: str) -> dict | None:
     if raw_data is None:
         return None
 
-    return normalize_weather_data(raw_data, zone)
+    return normalize_weather_data(raw_data, city, zone)
 
 
 def _detectar_discrepancias(historico: dict, actual: dict) -> list:
